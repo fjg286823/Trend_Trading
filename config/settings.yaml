@@ -1,0 +1,31 @@
+app:
+  title: "趋势交易系统"
+  default_symbol: "510300"
+  default_asset_type: "etf"
+  default_benchmark: "000300"
+
+data:
+  sqlite_path: "data/trade_cache.sqlite3"
+  timeframe: "1d"
+  adjust: "qfq"
+
+backtest:
+  initial_cash: 100000
+  commission_rate: 0.0003
+  min_commission: 5
+  stamp_tax_rate: 0.0005
+  slippage_rate: 0.0005
+
+strategy:
+  benchmark_ma_window: 60
+  fast_ma_window: 20
+  trend_ma_window: 60
+  entry_window: 55
+  exit_window: 20
+  atr_window: 20
+  atr_stop_multiple: 2.0
+  atr_add_multiple: 1.0
+  risk_per_trade: 0.01
+  max_adds: 3
+  lot_size: 100
+  use_volume_filter: true
