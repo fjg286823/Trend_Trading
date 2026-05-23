@@ -32,6 +32,10 @@ def add_trend_indicators(
     atr_window: int,
 ) -> pd.DataFrame:
     out = df.copy()
+    out["ma5"] = moving_average(out["close"], 5)
+    out["ma10"] = moving_average(out["close"], 10)
+    out["ma20"] = moving_average(out["close"], 20)
+    out["ma60"] = moving_average(out["close"], 60)
     out["ma_fast"] = moving_average(out["close"], fast_ma_window)
     out["ma_trend"] = moving_average(out["close"], trend_ma_window)
     out["entry_high"] = out["high"].rolling(entry_window, min_periods=entry_window).max().shift(1)

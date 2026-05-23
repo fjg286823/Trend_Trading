@@ -21,9 +21,11 @@ def main() -> None:
         wave = 0.15 * ((i % 17) - 8) / 8
         close = max(price + wave, 1.0)
         open_ = close * (0.995 + (i % 5) * 0.002)
-        high = max(open_, close) * 1.015
-        low = min(open_, close) * 0.985
+        high = max(open_, close) * 1.004
+        low = min(open_, close) * 0.996
         volume = 1_000_000 + (i % 30) * 30_000
+        if 120 <= i < 260 or i >= 360:
+            volume *= 1.35
         rows.append([dt.strftime("%Y-%m-%d"), open_, high, low, close, volume, close * volume])
 
     path = Path("data/sample_bars.csv")
