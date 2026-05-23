@@ -197,7 +197,7 @@ def main() -> None:
 
     with st.sidebar:
         st.header("行情")
-        source = st.radio("数据源", ["AKShare", "示例数据", "CSV"], horizontal=True)
+        source = st.radio("数据源", ["示例数据", "AKShare", "CSV"], horizontal=True)
         chart_symbol = st.text_input("当前图表代码", value=config["app"]["default_symbol"], help="例如 ETF: 510300；股票: 600519、000001")
         asset_type_mode = st.selectbox("代码类型", ["自动识别", "etf", "stock"], index=0)
         today = date.today()
@@ -205,6 +205,7 @@ def main() -> None:
         end = st.date_input("结束日期", today)
         refresh = st.checkbox("强制刷新AKShare缓存", value=False)
         uploaded = st.file_uploader("上传CSV", type=["csv"]) if source == "CSV" else None
+        load_chart = st.button("加载当前图表", type="primary", use_container_width=True)
 
         st.header("回测股票池")
         symbols_text = st.text_area("股票/ETF代码", value=chart_symbol, height=110, help="支持逗号、空格、换行分隔，例如：510300, 159915, 600519")
@@ -227,17 +228,20 @@ def main() -> None:
     chart_bars = pd.DataFrame()
     chart_result: BacktestResult | None = None
     chart_asset_type = ""
-    try:
-        chart_bars, chart_asset_type = load_symbol_bars(chart_symbol.strip(), source, asset_type_mode, start, end, config, refresh, uploaded)
-        benchmark = load_benchmark(source, start, end, config, refresh, chart_bars) if use_benchmark else None
-        if not chart_bars.empty:
-            chart_result = run_one_backtest(chart_symbol.strip(), chart_bars, benchmark, broker_config, strategy_config)
-    except Exception as exc:
-        st.error(f"{chart_symbol} 加载或回测失败：{friendly_error(exc)}")
+    should_load_chart = source == "示例数据" or load_chart
+    if should_load_chart:
+        try:
+            with st.spinner(f"正在加载 {chart_symbol} 行情并回测..."):
+                chart_bars, chart_asset_type = load_symbol_bars(chart_symbol.strip(), source, asset_type_mode, start, end, config, refresh, uploaded)
+                benchmark = load_benchmark(source, start, end, config, refresh, chart_bars) if use_benchmark else None
+                if not chart_bars.empty:
+                    chart_result = run_one_backtest(chart_symbol.strip(), chart_bars, benchmark, broker_config, strategy_config)
+        except Exception as exc:
+            st.error(f"{chart_symbol} 加载或回测失败：{friendly_error(exc)}")
 
     with tabs[0]:
         if chart_result is None:
-            st.info("请输入股票/ETF代码，或切换到示例数据/上传CSV。")
+            st.info("输入股票/ETF代码后，点击左侧“加载当前图表”。示例数据会自动加载，在线行情不会阻塞页面启动。")
         else:
             col_a, col_b, col_c, col_d = st.columns(4)
             col_a.metric("代码", chart_symbol)
