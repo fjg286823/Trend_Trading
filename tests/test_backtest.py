@@ -5,6 +5,7 @@ import unittest
 import pandas as pd
 
 from trend_trade.engine.backtest import BacktestEngine
+from trend_trade.data.providers import eastmoney_fqt, eastmoney_secid
 
 
 def make_synthetic_bars() -> pd.DataFrame:
@@ -29,6 +30,14 @@ def make_synthetic_bars() -> pd.DataFrame:
 
 
 class BacktestEngineTest(unittest.TestCase):
+    def test_eastmoney_helpers(self) -> None:
+        self.assertEqual(eastmoney_secid("600519", "stock"), "1.600519")
+        self.assertEqual(eastmoney_secid("000001", "stock"), "0.000001")
+        self.assertEqual(eastmoney_secid("510300", "etf"), "1.510300")
+        self.assertEqual(eastmoney_secid("159915", "etf"), "0.159915")
+        self.assertEqual(eastmoney_fqt("qfq"), "1")
+        self.assertEqual(eastmoney_fqt("hfq"), "2")
+
     def test_baseline_strategy_runs(self) -> None:
         broker_config = {
             "initial_cash": 100000,

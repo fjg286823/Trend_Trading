@@ -66,6 +66,18 @@ def fmt_pct(value: float) -> str:
     return f"{value * 100:.2f}%"
 
 
+def friendly_error(exc: Exception) -> str:
+    text = str(exc)
+    if "ProxyError" in text or "proxy" in text.lower() or "Unable to connect to proxy" in text:
+        return (
+            "网络/代理错误：行情接口连接失败。软件会优先禁用系统代理直连东方财富，"
+            "如果仍失败，请检查本机代理、VPN、防火墙，或先切换到“示例数据/CSV”。"
+        )
+    if "东方财富" in text or "AKShare" in text or "行情下载失败" in text:
+        return f"行情下载失败：{text}"
+    return text
+
+
 def parse_symbols(text: str) -> list[str]:
     raw = text.replace("，", ",").replace("\n", ",").replace(" ", ",").split(",")
     symbols = []
@@ -221,7 +233,7 @@ def main() -> None:
         if not chart_bars.empty:
             chart_result = run_one_backtest(chart_symbol.strip(), chart_bars, benchmark, broker_config, strategy_config)
     except Exception as exc:
-        st.error(f"{chart_symbol} 加载或回测失败：{exc}")
+        st.error(f"{chart_symbol} 加载或回测失败：{friendly_error(exc)}")
 
     with tabs[0]:
         if chart_result is None:
@@ -253,7 +265,7 @@ def main() -> None:
                     results[symbol] = result
                     summaries.append(result_summary(symbol, asset_type, result))
                 except Exception as exc:
-                    summaries.append(result_summary(symbol, guess_asset_type(symbol), None, str(exc)))  # type: ignore[arg-type]
+                    summaries.append(result_summary(symbol, guess_asset_type(symbol), None, friendly_error(exc)))  # type: ignore[arg-type]
                 progress.progress(i / max(len(symbols), 1))
             st.session_state["batch_results"] = results
             st.session_state["batch_summary"] = pd.DataFrame(summaries)
